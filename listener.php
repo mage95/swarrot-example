@@ -6,7 +6,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 $connection = new AMQPStreamConnection('rabbitmq.achilles.systems', 5672, 'admin', 'admin');
 $channel = $connection->channel();
 
-$queue_name = "rabbitmq-presentation";
+$queue_name = "rabbitmq-presentation-kris";
 $channel->queue_declare($queue_name, false, false, false, false);
 
 echo ' [*] Waiting for chat msgs. To exit press CTRL+C', "\n";

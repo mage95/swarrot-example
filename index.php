@@ -16,8 +16,8 @@ if (isset($_POST['message'])) {
     $connection = new AMQPStreamConnection('rabbitmq.achilles.systems', 5672, 'admin', 'admin');
     $channel = $connection->channel();
 
-    $queue_name = "rabbitmq-presentation";
-    $channel->queue_declare($queue_name, false, false, false, false);
+    $exchange_name = "rabbitmq-presentation";
+    $channel->exchange_declare($exchange_name, 'fanout', false, false, false);
 
     $timestamp = new \DateTime("now");
     $timestamp = $timestamp->format("Y-m-d H:i:s");
@@ -30,7 +30,7 @@ if (isset($_POST['message'])) {
 
     $msg = new AMQPMessage(json_encode($data));
 
-    $channel->basic_publish($msg, '', $queue_name);
+    $channel->basic_publish($msg, $exchange_name);
 
     $channel->close();
     $connection->close();
