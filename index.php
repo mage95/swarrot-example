@@ -13,11 +13,14 @@ if (isset($_POST['username'])) {
 
 // Send new message
 if (isset($_POST['message'])) {
-    $connection = new AMQPStreamConnection('rabbitmq.achilles.systems', 5672, 'admin', 'admin');
+    $connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
     $channel = $connection->channel();
 
     $exchange_name = "rabbitmq-presentation";
     $channel->exchange_declare($exchange_name, 'fanout', false, false, false);
+    $queue_name = "rabbitmq-presentation-".$_SESSION["username"];
+    $channel->queue_declare($queue_name, false, false, false, false);
+    $channel->queue_bind($queue_name, $exchange_name, '');
 
     $timestamp = new \DateTime("now");
     $timestamp = $timestamp->format("Y-m-d H:i:s");
