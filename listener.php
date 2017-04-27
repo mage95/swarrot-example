@@ -3,10 +3,10 @@
 require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
-$connection = new AMQPStreamConnection('rabbitmq.achilles.systems', 5672, 'admin', 'admin');
+$connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
 $channel = $connection->channel();
 
-$queue_name = "rabbitmq-presentation-kris";
+$queue_name = "rabbitmq-presentation-ryan";
 $channel->queue_declare($queue_name, false, false, false, false);
 
 echo ' [*] Waiting for chat msgs. To exit press CTRL+C', "\n";
