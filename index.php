@@ -1,4 +1,6 @@
 <?php
+
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -13,11 +15,10 @@ if (isset($_POST['username'])) {
 
 // Send new message
 if (isset($_POST['message'])) {
-    $connection = new AMQPStreamConnection('rabbitmq.achilles.systems', 5672, 'admin', 'admin');
+    $connection = new AMQPStreamConnection($rabbitMQHost, $rabbitMQport, $rabbitMQUser, $rabbitMQPassword);
     $channel = $connection->channel();
 
-    $exchange_name = "rabbitmq-presentation";
-    $channel->exchange_declare($exchange_name, 'fanout', false, false, false);
+    $channel->exchange_declare($rabbitMQExchangeName, 'fanout', false, false, false);
 
     $timestamp = new \DateTime("now");
     $timestamp = $timestamp->format("Y-m-d H:i:s");
@@ -30,7 +31,7 @@ if (isset($_POST['message'])) {
 
     $msg = new AMQPMessage(json_encode($data));
 
-    $channel->basic_publish($msg, $exchange_name);
+    $channel->basic_publish($msg, $rabbitMQExchangeName);
 
     $channel->close();
     $connection->close();
@@ -48,7 +49,14 @@ if (isset($_SESSION["username"])) {
 <head>
     <title>Chat with RabbitMQ</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
     <script type="text/javascript">
+        var username = '<?php echo $_SESSION["username"]; ?>';
+
         $(document).ready(function(){
             if ($("#chat-table").length) {
                 setInterval(function(){
@@ -63,8 +71,15 @@ if (isset($_SESSION["username"])) {
                         }
                     }).done(function (data) {
                         $.each(data, function(index, data) {
-                            $('ul#chat-table').append(
-                                '<li>'+data.sender+': '+data.message+' ('+data.timestamp+')</li>'
+                            var sendername = data.sender;
+                            if (sendername == username) sendername = "<b>"+sendername+"</b>";
+
+                            $('#chat-table').prepend(
+                                '<tr>'+
+                                    '<td>'+sendername+'</td>'+
+                                    '<td>'+data.message+'</td>'+
+                                    '<td>'+data.timestamp+'</td>'+
+                                '</tr>'
                             );
                         });
                     });
@@ -87,6 +102,27 @@ if (isset($_SESSION["username"])) {
             }
         });
     </script>
+    <style type="text/css">
+        .mdl-data-table th, .mdl-data-table td {
+            text-align: left;
+        }
+        .mdl-data-table tbody tr:nth-child(2n) {
+            background-color: #FFFFFF;
+        }
+        .mdl-data-table tbody tr:nth-child(2n+1) {
+            background-color: #EFEFEF;
+        }
+        body{
+            background: #fafafa none repeat scroll 0 0;
+        }
+        .header{
+            background: #3f51b5 none repeat scroll 0 0;
+            height: 90px;
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+    </style>
+
 </head>
 <body>
     <?php if (!$loggedIn) { ?>
@@ -96,18 +132,39 @@ if (isset($_SESSION["username"])) {
             <input type="submit" value="Submit" />
         </form>
     <?php } else { ?>
-        Logged in!! <?php echo $_SESSION["username"]; ?>
-        <hr />
+        <div class="header">
+            <div style="float:left; margin:30px;">
+                <span style="text-decoration:underline; font-size:20px;">
+                    Chat Application - RabbitMQ
+                </span>
+            </div>
+            <div style="float:right; margin:30px;">
+                <div style="vertical-align: bottom;" class="material-icons mdl-badge mdl-badge--overlap">account_box</div>
+                <span>Hello, <?php echo $_SESSION["username"]; ?></span>
+            </div>
+        </div>
 
         <form id="msg-form" style="width: 100%; text-align: center;" method="POST">
-            Message: <input type="text" id="message" name="message" value="" /> &nbsp;
-            <input type="submit" value="Send" />
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" id="message" name="message">
+                <label class="mdl-textfield__label" for="message">Message</label>
+
+                <input style=margin-left:150px;" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" type="submit" value="Send" />
+            </div>
         </form>
 
-        <hr />
+        <table id="chat-table" style="width:90%; margin:0 5%;" class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+            <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Message</th>
+                <th>Timestamp</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
 
-        <ul id="chat-table" style="width:100%;">
-        </ul>
     <?php } ?>
 </body>
 </html>
