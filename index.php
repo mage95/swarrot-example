@@ -8,6 +8,8 @@ use PhpAmqpLib\Message\AMQPMessage;
 // Start the session
 session_start();
 
+$baseUrl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]";
+
 // Perform Login
 if (isset($_POST['username'])) {
     $_SESSION["username"] = $_POST['username'];
@@ -62,7 +64,7 @@ if (isset($_SESSION["username"])) {
                 setInterval(function(){
                     $.ajax({
                         type: 'GET',
-                        url: '/getchat.php',
+                        url: '<?php echo $baseUrl; ?>/get_chat.php',
                         data: {},
                         dataType: 'json',
                         contentType: "application/json",
@@ -92,7 +94,7 @@ if (isset($_SESSION["username"])) {
 
                     $.ajax({
                         method: 'POST',
-                        url: '/index.php',
+                        url: '<?php echo $baseUrl; ?>/index.php',
                         data: { message: $("#message").val() },
                         error: function (request, status, error) {
                             console.log(error);
