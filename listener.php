@@ -1,13 +1,14 @@
 <?php
 
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
-$connection = new AMQPStreamConnection('localhost', 5672, 'guest', 'guest');
+$connection = new AMQPStreamConnection($rabbitMQHost, $rabbitMQport, $rabbitMQUser, $rabbitMQPassword);
 $channel = $connection->channel();
 
-$queue_name = "rabbitmq-presentation-ryan";
-$channel->queue_declare($queue_name, false, false, false, false);
+$channel->queue_declare($rabbitMQQueueName, false, false, false, false);
+$channel->queue_bind($rabbitMQQueueName, $rabbitMQExchangeName);
 
 echo ' [*] Waiting for chat msgs. To exit press CTRL+C', "\n";
 
@@ -20,7 +21,7 @@ $callback = function($msg){
     fclose($handle);
 };
 
-$channel->basic_consume($queue_name, '', false, true, false, false, $callback);
+$channel->basic_consume($rabbitMQQueueName, '', false, true, false, false, $callback);
 
 while(count($channel->callbacks)) {
     $channel->wait();
