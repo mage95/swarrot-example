@@ -53,7 +53,7 @@ if (isset($_SESSION["username"])) {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.light_green-red.min.css">
     <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 
     <script type="text/javascript">
@@ -67,20 +67,17 @@ if (isset($_SESSION["username"])) {
                         url: '<?php echo $baseUrl; ?>/get_chat.php',
                         data: {},
                         dataType: 'json',
-                        contentType: "application/json",
-                        error: function (request, status, error) {
-                            console.log(error);
-                        }
-                    }).done(function (data) {
-                        $.each(data, function(index, data) {
-                            var sendername = data.sender;
+                        contentType: "application/json"
+                    }).done(function (msg) {
+                        $.each(msg, function(index, value) {
+                            var sendername = value.sender;
                             if (sendername == username) sendername = "<b>"+sendername+"</b>";
 
                             $('#chat-table').prepend(
                                 '<tr>'+
-                                    '<td>'+sendername+'</td>'+
-                                    '<td>'+data.message+'</td>'+
-                                    '<td>'+data.timestamp+'</td>'+
+                                '<td>'+sendername+'</td>'+
+                                '<td>'+value.message+'</td>'+
+                                '<td>'+value.timestamp+'</td>'+
                                 '</tr>'
                             );
                         });
@@ -95,10 +92,9 @@ if (isset($_SESSION["username"])) {
                     $.ajax({
                         method: 'POST',
                         url: '<?php echo $baseUrl; ?>/index.php',
-                        data: { message: $("#message").val() },
-                        error: function (request, status, error) {
-                            console.log(error);
-                        }
+                        data: { message: $("#message").val() }
+                    }).done(function (msg) {
+                        $("#message").val("");
                     });
                 });
             }
@@ -118,20 +114,36 @@ if (isset($_SESSION["username"])) {
             background: #fafafa none repeat scroll 0 0;
         }
         .header{
-            background: #3f51b5 none repeat scroll 0 0;
+            background: #ae2125 none repeat scroll 0 0;
             height: 90px;
             margin-bottom: 30px;
             color: #ffffff;
+        }
+        .mdl-button--raised.mdl-button--colored {
+            background: #35aa47 none repeat scroll 0 0;
+            color: rgb(255, 255, 255);
         }
     </style>
 
 </head>
 <body>
     <?php if (!$loggedIn) { ?>
+        <div class="header">
+            <div style="float:left; margin:30px;">
+                <span style="text-decoration:underline; font-size:20px;">
+                    Chat Application - RabbitMQ
+                </span>
+            </div>
+        </div>
+
         <form id="login-form" style="width: 100%; text-align: center;" method="POST">
             <h3>Login</h3>
-            Username: <input type="text" name="username" value="" /> &nbsp;
-            <input type="submit" value="Submit" />
+            <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" id="username" name="username">
+                <label class="mdl-textfield__label" for="username">Username</label>
+
+                <input style=margin-left:150px;" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" type="submit" value="Submit" />
+            </div>
         </form>
     <?php } else { ?>
         <div class="header">
