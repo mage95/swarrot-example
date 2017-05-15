@@ -17,6 +17,7 @@ if (isset($_POST['username'])) {
 
 // Send new message
 if (isset($_POST['message'])) {
+
     $connection = new AMQPStreamConnection($rabbitMQHost, $rabbitMQport, $rabbitMQUser, $rabbitMQPassword);
     $channel = $connection->channel();
 
